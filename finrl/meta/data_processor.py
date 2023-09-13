@@ -46,11 +46,6 @@ class DataProcessor:
         df = self.processor.clean_data(df)
 
         return df
-    
-    def clean_dataor(self, df) -> pd.DataFrame:
-        df = self.processor.clean_dataor(df)
-
-        return df
 
     def add_technical_indicator(self, df, tech_indicator_list) -> pd.DataFrame:
         self.tech_indicator_list = tech_indicator_list
@@ -58,9 +53,13 @@ class DataProcessor:
 
         return df
     
-    def add_technical_indicatoror(self, df, tech_indicator_list) -> pd.DataFrame:
-        self.tech_indicator_list = tech_indicator_list
-        df = self.processor.add_technical_indicator(df, tech_indicator_list)
+    def add_turbulence(self, df) -> pd.DataFrame:
+        df = self.processor.add_turbulence(df)
+
+        return df
+
+    def add_vix(self, df) -> pd.DataFrame:
+        df = self.processor.add_vix(df)
 
         return df
 
