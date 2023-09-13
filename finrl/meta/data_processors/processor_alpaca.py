@@ -10,22 +10,6 @@ import pytz
 from stockstats import StockDataFrame as Sdf
 
 
-#define merge_indicator at module level for Multithreading
-# def merge_indicator(args):
-#     df, stock, indicator, unique_ticker = args
-#     indicator_df = pd.DataFrame()
-#     for i in range(len(unique_ticker)):
-#         temp_indicator = stock[stock.tic == unique_ticker[i]][indicator]
-#         if temp_indicator.empty:
-#             continue
-#         temp_indicator = pd.DataFrame(temp_indicator)
-#         temp_indicator["tic"] = unique_ticker[i]
-#         temp_indicator["date"] = df[df.tic == unique_ticker[i]]["date"].to_list()
-#         indicator_df = pd.concat([indicator_df, temp_indicator], ignore_index=True)
-#     return df.merge(indicator_df[["tic", "date", indicator]], on=["tic", "date"], how="left")
-
-
-
 
 class AlpacaProcessor:
     def __init__(self, API_KEY=None, API_SECRET=None, API_BASE_URL=None, api=None):
@@ -87,43 +71,6 @@ class AlpacaProcessor:
 
         return data_df
 
-
-    # @staticmethod
-    # def clean_individual_ticker(args):
-    #     tic, df, times = args
-    #     tmp_df = pd.DataFrame(columns=["open", "high", "low", "close", "volume"], index=times)
-    #     tic_df = df[df.tic == tic]
-
-    #     for i in range(tic_df.shape[0]):
-    #         tmp_df.loc[tic_df.iloc[i]["timestamp"]] = tic_df.iloc[i][["open", "high", "low", "close", "volume"]]
-
-    #     # ... (rest of the processing for tmp_df, similar to your existing code)
-    #     # Below, I'm incorporating the NaN filling and data type conversion parts of your original loop.
-
-    #     if pd.isna(tmp_df.iloc[0]["close"]):
-    #         print(f"The price of the first row for ticker {tic} is NaN. It will be filled with the first valid price.")
-    #         for i in range(tmp_df.shape[0]):
-    #             if not pd.isna(tmp_df.iloc[i]["close"]):
-    #                 first_valid_price = tmp_df.iloc[i]["close"]
-    #                 tmp_df.iloc[0] = [first_valid_price] * 4 + [0.0]
-    #                 break
-
-    #     if pd.isna(tmp_df.iloc[0]["close"]):
-    #         print(f"Missing data for ticker: {tic}. The prices are all NaN. Fill with 0.")
-    #         tmp_df.iloc[0] = [0.0] * 5
-
-    #     for i in range(tmp_df.shape[0]):
-    #         if pd.isna(tmp_df.iloc[i]["close"]):
-    #             previous_close = tmp_df.iloc[i - 1]["close"]
-    #             if pd.isna(previous_close):
-    #                 raise ValueError
-    #             tmp_df.iloc[i] = [previous_close] * 4 + [0.0]
-
-    #     tmp_df = tmp_df.astype(float)
-    #     tmp_df["tic"] = tic
-
-    #     return tmp_df
-
     @staticmethod
     def clean_individual_ticker(args):
         tic, df, times = args
@@ -168,8 +115,6 @@ class AlpacaProcessor:
         filter_mask = grouped.transform('count')['tic'] >= n_tickers
         df = df[filter_mask]
 
-       
-        
         # ... (generating 'times' series, same as in your existing code)
 
         trading_days = self.get_trading_days(start=self.start, end=self.end)
@@ -198,7 +143,7 @@ class AlpacaProcessor:
         print("Data clean finished!")
         
         return new_df
-
+    
     def add_technical_indicator(
         self,
         df,
@@ -213,165 +158,53 @@ class AlpacaProcessor:
         ],
     ):
         print("Started adding Indicators")
-        df = df.rename(columns={"timestamp": "date"})
-        df = df.copy()
-        df = df.sort_values(by=["tic", "date"])
-        stock = Sdf.retype(df.copy())
-        unique_ticker = stock.tic.unique()
-        tech_indicator_list = tech_indicator_list
 
+        # Store the original data type of the 'timestamp' column
+        original_timestamp_dtype = df['timestamp'].dtype
+
+        # Convert df to stock data format just once
+        stock = Sdf.retype(df)
+        unique_ticker = stock.tic.unique()
+
+        # Convert timestamp to a consistent datatype (timezone-naive) before entering the loop
+        df['timestamp'] = df['timestamp'].dt.tz_convert(None)
+
+        print("Running Loop")
         for indicator in tech_indicator_list:
-            indicator_df = pd.DataFrame()
-            for i in range(len(unique_ticker)):
-                #print(unique_ticker[i], i)
-                temp_indicator = stock[stock.tic == unique_ticker[i]][indicator]
-                temp_indicator = pd.DataFrame(temp_indicator)
-                temp_indicator["tic"] = unique_ticker[i]
-                #print(len(df[df.tic == unique_ticker[i]]['date'].to_list()))
-                temp_indicator["date"] = df[df.tic == unique_ticker[i]][
-                    "date"
-                ].to_list()
-                indicator_df = pd.concat(
-                    [indicator_df, temp_indicator], ignore_index=True
-                )
+            indicator_dfs = []
+            for tic in unique_ticker:
+                tic_data = stock[stock.tic == tic]
+                indicator_series = tic_data[indicator]
+                
+                tic_timestamps = df.loc[df.tic == tic, 'timestamp']
+                
+                indicator_df = pd.DataFrame({'tic': tic, 'date': tic_timestamps.values, indicator: indicator_series.values})
+                indicator_dfs.append(indicator_df)
+
+            # Concatenate all intermediate dataframes at once
+            indicator_df = pd.concat(indicator_dfs, ignore_index=True)
+
+            # Merge the indicator data frame
             df = df.merge(
-                indicator_df[["tic", "date", indicator]], on=["tic", "date"], how="left"
-            )
-        df = df.sort_values(by=["date", "tic"])
-        df = df.rename(columns={"date": "timestamp"})
+                indicator_df[['tic', 'date', indicator]], 
+                left_on=['tic', 'timestamp'], 
+                right_on=['tic', 'date'], 
+                how='left'
+            ).drop(columns='date')
+        
+        print("Restore Timestamps")
+        # Restore the original data type of the 'timestamp' column
+        if isinstance(original_timestamp_dtype, pd.DatetimeTZDtype):
+            if df['timestamp'].dt.tz is None:
+                df['timestamp'] = df['timestamp'].dt.tz_localize('UTC')
+            df['timestamp'] = df['timestamp'].dt.tz_convert(original_timestamp_dtype.tz)
+        else:
+            df['timestamp'] = df['timestamp'].astype(original_timestamp_dtype)
+
         print("Finished adding Indicators")
         return df
-    
-    # Now your main function where you are using these two functions.
-    # def add_technical_indicator(self, df, tech_indicator_list=["macd", "boll_ub", "boll_lb", "rsi_30", "dx_30", "close_30_sma", "close_60_sma"]):
-    #     print("Started adding Indicators")
-    #     df = df.rename(columns={"timestamp": "date"})
-    #     df = df.copy()
-    #     df = df.sort_values(by=["tic", "date"])
-        
-    #     stock = Sdf.retype(df.copy())
-    #     unique_ticker = stock.tic.unique()
 
-    #     with ProcessPoolExecutor(max_workers=6) as executor:
-    #         future_results = list(executor.map(merge_indicator, [(df, stock, indicator, unique_ticker) for indicator in tech_indicator_list]))
-
-    #     for result_df in future_results:
-    #         new_column = [col for col in result_df.columns if col not in df.columns]
-    #         if new_column:
-    #             df = df.merge(result_df[["tic", "date"] + new_column], on=["tic", "date"], how="left")
-        
-    #     df = df.sort_values(by=["date", "tic"])
-    #     df = df.rename(columns={"date": "timestamp"})
-    #     print("Finished adding Indicators")
-    #     return df
-
-
-    
-    def clean_dataor(self, df):
-        tic_list = np.unique(df.tic.values)
-        n_tickers = len(tic_list)
-
-        # align start and end dates
-        unique_times = df["timestamp"].unique()
-        for time in unique_times:
-            if len(df[df.timestamp == time].index) < n_tickers:
-                df = df[df.timestamp != time]
-
-        trading_days = self.get_trading_days(start=self.start, end=self.end)
-        # produce full timestamp index
-        times = []
-        for day in trading_days:
-            NY = "America/New_York"
-            current_time = pd.Timestamp(day + " 09:30:00").tz_localize(NY)
-            for i in range(390):
-                times.append(current_time)
-                current_time += pd.Timedelta(minutes=1)
-
-        # create a new dataframe with full timestamp series
-        new_df = pd.DataFrame()
-        for tic in tic_list:
-            tmp_df = pd.DataFrame(
-                columns=["open", "high", "low", "close", "volume"], index=times
-            )
-            tic_df = df[df.tic == tic]
-            for i in range(tic_df.shape[0]):
-                tmp_df.loc[tic_df.iloc[i]["timestamp"]] = tic_df.iloc[i][
-                    ["open", "high", "low", "close", "volume"]
-                ]
-
-            # if the close price of the first row is NaN
-            if str(tmp_df.iloc[0]["close"]) == "nan":
-                print(
-                    "The price of the first row for ticker ",
-                    tic,
-                    " is NaN. ",
-                    "It will filled with the first valid price.",
-                )
-                for i in range(tmp_df.shape[0]):
-                    if str(tmp_df.iloc[i]["close"]) != "nan":
-                        first_valid_price = tmp_df.iloc[i]["close"]
-                        tmp_df.iloc[0] = [
-                            first_valid_price,
-                            first_valid_price,
-                            first_valid_price,
-                            first_valid_price,
-                            0.0,
-                        ]
-                        break
-
-            # if the close price of the first row is still NaN (All the prices are NaN in this case)
-            if str(tmp_df.iloc[0]["close"]) == "nan":
-                print(
-                    "Missing data for ticker: ",
-                    tic,
-                    " . The prices are all NaN. Fill with 0.",
-                )
-                tmp_df.iloc[0] = [
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                ]
-
-            # forward filling row by row
-            for i in range(tmp_df.shape[0]):
-                if str(tmp_df.iloc[i]["close"]) == "nan":
-                    previous_close = tmp_df.iloc[i - 1]["close"]
-                    if str(previous_close) == "nan":
-                        raise ValueError
-                    tmp_df.iloc[i] = [
-                        previous_close,
-                        previous_close,
-                        previous_close,
-                        previous_close,
-                        0.0,
-                    ]
-
-            tmp_df = tmp_df.astype(float)
-            tmp_df["tic"] = tic
-            new_df = pd.concat([new_df, tmp_df])
-
-        new_df = new_df.reset_index()
-        new_df = new_df.rename(columns={"index": "timestamp"})
-
-        # print("Data clean finished!")
-
-        return new_df
-
-
-
-    def add_vixor(self, data):
-        vix_df = self.download_data(["VIXY"], self.start, self.end, self.time_interval)
-        cleaned_vix = self.clean_dataor(vix_df)
-        vix = cleaned_vix[["timestamp", "close"]]
-        vix = vix.rename(columns={"close": "VIXY"})
-
-        df = data.copy()
-        df = df.merge(vix, on="timestamp")
-        df = df.sort_values(["timestamp", "tic"]).reset_index(drop=True)
-        return df
-    
+    # Allows to multithread the add_vix function for quicker execution
     def download_and_clean_data(self):
         vix_df = self.download_data(["VIXY"], self.start, self.end, self.time_interval)
         return self.clean_data(vix_df)
