@@ -2,6 +2,116 @@ from __future__ import annotations
 
 SINGLE_TICKER = ["AAPL"]
 
+## My ticker selections
+BOT30_TICKER = [
+    "AAPL",
+    "AMZN",
+    "GOOGL",
+    "TSLA",
+    "NFLX",
+    "MSFT",
+    "NVDA",
+    "AMD",
+    "PLTR",
+    "ZM",
+    "MRNA",
+    "GS",
+    "SQ",
+    "ROKU",
+    "SHOP",
+    "META",
+    "SPOT",
+    "JNJ",
+    "PFE",
+    "DIS",
+    "PYPL",
+    "CRM",
+    "V",
+    "MA",
+    "JPM",
+    "BAC",
+    "CAT",
+    "MMM",
+    "BA",
+    "NIO",
+]
+
+## Tech focused
+ROUNDED_TICKER = [
+    "AAPL",
+    "MSFT",
+    "NVDA",
+    "JNJ",
+    "PFE",
+    "ABT",
+    "JPM",
+    "V",
+    "GS",
+    "AMZN",
+    "HD",
+    "NKE",
+    "MMM",
+    "BA",
+    "CAT",
+    "DUK",
+    "PLD",
+    "EQR",
+]
+
+## Tech focused
+TECH_TICKER = [
+    "AAPL",
+    "MSFT",
+    "GOOGL",
+    "NVDA",
+    "AMD",
+    "PLTR",
+    "JNJ",
+    "PFE",
+    "MRNA",
+    "ABT",
+    "JPM",
+    "BAC",
+    "SQ",
+    "AMZN",
+    "DIS",
+    "TSLA",
+    "MMM",
+    "BA",
+    "NEE",
+    "GLD",
+    "PLD",
+]
+
+
+## My ticker selections
+MIGUEL_TICKER = [
+    "AAPL",
+    "AMZN",
+    "GOOGL",
+    "TSLA",
+    "T",
+    "MSFT",
+    "NVDA",
+    "AMD",
+    "UBER",
+    "MRNA",
+    "META",
+    "TWLO",
+    "ADBE",
+]
+
+# "SQ",
+#     "VZ",
+#     "T",
+#     "MSFT",
+#     "META",
+#     "NVDA",
+#     "AMD",
+#     "CRM",
+#     "REGN",
+#     "ISRG",
+
 # Dow 30 constituents in 2021/10
 # check https://wrds-www.wharton.upenn.edu/ for U.S. index constituents
 DOW_30_TICKER = [
