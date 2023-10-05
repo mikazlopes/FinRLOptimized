@@ -71,7 +71,7 @@ class AlpacaProcessor:
 
         return data_df
 
-    @staticmethod
+     @staticmethod
     def clean_individual_ticker(args):
         tic, df, times = args
         tmp_df = pd.DataFrame(index=times)
@@ -86,7 +86,7 @@ class AlpacaProcessor:
             if first_valid_index is not None:
                 first_valid_price = tmp_df.loc[first_valid_index, 'close']
                 print(f"The price of the first row for ticker {tic} is NaN. It will be filled with the first valid price.")
-                tmp_df.iloc[0] = [first_valid_price] * 5
+                tmp_df.iloc[0] = [first_valid_price] * 4 + [0.0]  # Set volume to zero
             else:
                 print(f"Missing data for ticker: {tic}. The prices are all NaN. Fill with 0.")
                 tmp_df.iloc[0] = [0.0] * 5
@@ -95,7 +95,11 @@ class AlpacaProcessor:
             if pd.isna(tmp_df.iloc[i]["close"]):
                 previous_close = tmp_df.iloc[i - 1]["close"]
                 tmp_df.iloc[i] = [previous_close] * 4 + [0.0]
-                
+
+        # Setting the volume for the market opening timestamp to zero
+        tmp_df.loc[tmp_df.index.time == pd.Timestamp("09:30:00").time(), 'volume'] = 0.0
+
+
         # Step 3: Data type conversion
         tmp_df = tmp_df.astype(float)
 
@@ -129,11 +133,14 @@ class AlpacaProcessor:
                 times.append(current_time)
                 current_time += pd.Timedelta(minutes=1)
 
-        print("Start multi thread")
-        with ProcessPoolExecutor(max_workers=6) as executor:
-            future_results = list(executor.map(self.clean_individual_ticker, [(tic, df.copy(), times) for tic in tic_list]))
+        print("Start processing tickers")
+    
+        future_results = []
+        for tic in tic_list:
+            result = self.clean_individual_ticker((tic, df.copy(), times))
+            future_results.append(result)
 
-        print("End multi thread")
+        print("ticker list complete")
 
         print("Start concat and rename")
         new_df = pd.concat(future_results)
@@ -143,6 +150,7 @@ class AlpacaProcessor:
         print("Data clean finished!")
         
         return new_df
+
     
     def add_technical_indicator(
         self,
