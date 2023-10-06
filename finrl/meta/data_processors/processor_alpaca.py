@@ -57,7 +57,7 @@ class AlpacaProcessor:
         end_date = pd.Timestamp(end_date + " 15:59:00", tz=NY)
 
         # Use ThreadPoolExecutor to fetch data for multiple tickers concurrently
-        with ThreadPoolExecutor(max_workers=len(ticker_list)) as executor:
+        with ThreadPoolExecutor(max_workers=10)) as executor:
             futures = [executor.submit(self._fetch_data_for_ticker, ticker, start_date, end_date, time_interval) for ticker in ticker_list]
             data_list = [future.result() for future in futures]
 
