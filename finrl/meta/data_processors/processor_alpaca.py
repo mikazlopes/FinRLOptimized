@@ -71,7 +71,7 @@ class AlpacaProcessor:
 
         return data_df
 
-     @staticmethod
+    @staticmethod
     def clean_individual_ticker(args):
         tic, df, times = args
         tmp_df = pd.DataFrame(index=times)
