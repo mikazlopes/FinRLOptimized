@@ -21,53 +21,60 @@ class AlpacaProcessor:
         else:
             self.api = api
 
-    def download_data(
-        self, ticker_list, start_date, end_date, time_interval
-    ) -> pd.DataFrame:
-        """
-        ticker_list : list string of ticket
-        time_interval: time interval
-        start_date : start date of America/New_York time
-        end_date : end date of America/New_York time
+    def _fetch_data_for_ticker(self, ticker, start_date, end_date, time_interval):
+        bars = self.api.get_bars(
+            ticker,
+            time_interval,
+            start=start_date.isoformat(),
+            end=end_date.isoformat()
+        ).df
+        bars['symbol'] = ticker
+        return bars
 
-        The function tries to retrieve the data, between the start date and the end date, from the Alpaca server.
-        if time_interval < 1D: period of data retrieved is the opening time of the New York Stock Exchange (NYSE) (from 9:30 am to 4:00 pm), in UTC offset zone.
-        if time_interval >= 1D: each bar is the midnight of the day in America/New_York time, in UTC offset zone.
+    def download_data(self, ticker_list, start_date, end_date, time_interval) -> pd.DataFrame:
+        """
+        Downloads data using Alpaca's tradeapi.REST method.
+        
+        Parameters:
+        - ticker_list : list of strings, each string is a ticker
+        - start_date : string in the format 'YYYY-MM-DD'
+        - end_date : string in the format 'YYYY-MM-DD'
+        - time_interval: string representing the interval ('1D', '1Min', etc.)
+        
+        Returns:
+        - pd.DataFrame with the requested data
         """
         self.start = start_date
         self.end = end_date
         self.time_interval = time_interval
-
-        # download
+        
         NY = "America/New_York"
         start_date = pd.Timestamp(start_date + " 09:30:00", tz=NY)
         end_date = pd.Timestamp(end_date + " 15:59:00", tz=NY)
-        barset = self.api.get_bars(
-            ticker_list,
-            time_interval,
-            start=start_date.isoformat(),
-            end=end_date.isoformat(),
-        ).df
 
-        # barset response has the timestamps in UTC - Convert to NY timezone
-        barset = barset.reset_index()
-        barset["timestamp"] = barset["timestamp"].apply(lambda x: x.tz_convert(NY))
-        barset = barset.set_index("timestamp")
+        # Use ThreadPoolExecutor to fetch data for multiple tickers concurrently
+        with ThreadPoolExecutor(max_workers=len(ticker_list)) as executor:
+            futures = [executor.submit(self._fetch_data_for_ticker, ticker, start_date, end_date, time_interval) for ticker in ticker_list]
+            data_list = [future.result() for future in futures]
 
-        # from trepan.api import debug;debug()
-        # filter opening time of the New York Stock Exchange (NYSE) (from 9:30 am to 4:00 pm) if time_interval < 1D
-        day_delta = pd.Timedelta(days=1)
-        if pd.Timedelta(time_interval) < day_delta:
-            NYSE_open_hour = "09:30"  # in NY
-            NYSE_close_hour = "15:59"  # in NY
-            data_df = barset.between_time(NYSE_open_hour, NYSE_close_hour)
-        else:
-            data_df = barset
+        # Combine the data
+        data_df = pd.concat(data_list, axis=0)
 
-        # reformat to finrl expected schema
-        data_df = data_df.reset_index().rename(columns={"symbol": "tic"})
-        # timestamp is already converted to NY timezone
-        # data_df["timestamp"] = data_df["timestamp"].apply(lambda x: x.tz_convert(NY))
+        # Convert the timezone
+        data_df = data_df.tz_convert(NY)
+
+        # If time_interval is less than a day, filter out the times outside of NYSE trading hours
+        if pd.Timedelta(time_interval) < pd.Timedelta(days=1):
+            data_df = data_df.between_time('09:30', '15:59')
+
+        # Reset the index and rename the columns for consistency
+        data_df = data_df.reset_index().rename(columns={"index": "timestamp", "symbol": "tic"})
+
+        # Sort the data by both timestamp and tic for consistent ordering
+        data_df = data_df.sort_values(by=['tic', 'timestamp'])
+
+        # Reset the index and drop the old index column
+        data_df = data_df.reset_index(drop=True)
 
         return data_df
 
@@ -96,8 +103,8 @@ class AlpacaProcessor:
                 previous_close = tmp_df.iloc[i - 1]["close"]
                 tmp_df.iloc[i] = [previous_close] * 4 + [0.0]
 
-        # Setting the volume for the market opening timestamp to zero
-        tmp_df.loc[tmp_df.index.time == pd.Timestamp("09:30:00").time(), 'volume'] = 0.0
+        # Setting the volume for the market opening timestamp to zero - Not needed
+        #tmp_df.loc[tmp_df.index.time == pd.Timestamp("09:30:00").time(), 'volume'] = 0.0
 
 
         # Step 3: Data type conversion
