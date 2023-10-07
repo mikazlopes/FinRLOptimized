@@ -8,11 +8,6 @@ import numpy as np
 import pandas as pd
 import pytz
 from stockstats import StockDataFrame as Sdf
-from requests.adapters import HTTPAdapter
-
-
-HTTPAdapter(pool_maxsize=100)
-
 
 
 class AlpacaProcessor:
