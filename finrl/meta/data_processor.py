@@ -11,7 +11,7 @@ from finrl.meta.data_processors.processor_yahoofinance import (
 
 
 class DataProcessor:
-    def __init__(self, data_source, **kwargs):
+    def __init__(self, data_source, tech_indicator=None, vix=None, **kwargs):
         if data_source == "alpaca":
             try:
                 API_KEY = kwargs.get("API_KEY")
@@ -30,6 +30,9 @@ class DataProcessor:
 
         else:
             raise ValueError("Data source input is NOT supported yet.")
+
+        self.tech_indicator_list = tech_indicator
+        self.vix = vix
 
     def download_data(
         self, ticker_list, start_date, end_date, time_interval
