@@ -147,6 +147,136 @@ DOW_30_TICKER = [
     "DOW",
 ]
 
+DRL_ALGO_TICKERS = [
+    "AAPL",  # Apple
+    "ACN",   # Accenture
+    "ADBE",  # Adobe
+    "ADI",   # Analog Devices
+    "ADP",   # Automatic Data Processing
+    "ADSK",  # Autodesk
+    "AEP",   # American Electric Power
+    "ALGN",  # Align Technology
+    "AMAT",  # Applied Materials
+    "AMD",   # Advanced Micro Devices
+    "AMGN",  # Amgen
+    "AMZN",  # Amazon
+    "ANET",  # Arista Networks
+    "ANSS",  # ANSYS
+    "AON",   # Aon
+    "ATVI",  # Activision Blizzard
+    "AVGO",  # Broadcom
+    "AXP",   # American Express
+    "BIDU",  # Baidu
+    "BIIB",  # Biogen
+    "BLK",   # BlackRock
+    "BLNK",  # Blink Charging
+    "BRKB",  # Berkshire Hathaway
+    "BKNG",  # Booking Holdings
+    "CAT",   # Caterpillar
+    "CDNS",  # Cadence Design Systems
+    "CHPT",  # ChargePoint
+    "CHTR",  # Charter Communications
+    "CI",    # Cigna
+    "CMCSA", # Comcast
+    "CME",   # CME Group
+    "COUP",  # Coupa Software
+    "COST",  # Costco Wholesale
+    "CSCO",  # Cisco Systems
+    "CRM",   # Salesforce
+    "CRWD",  # CrowdStrike
+    "CSX",   # CSX Corporation
+    "CTAS",  # Cintas
+    "CTSH",  # Cognizant
+    "DDOG",  # Datadog
+    "DE",    # Deere & Company
+    "DHR",   # Danaher
+    "DOCU",  # DocuSign
+    "DXCM",  # DexCom
+    "EA",    # Electronic Arts
+    "ENPH",  # Enphase Energy
+    "EPAM",  # EPAM Systems
+    "EQIX",  # Equinix
+    "ETSY",  # Etsy
+    "FISV",  # Fiserv
+    "FTNT",  # Fortinet
+    "GILD",  # Gilead Sciences
+    "GOOGL", # Alphabet
+    "HD",    # Home Depot
+    "HON",   # Honeywell
+    "IBM",   # IBM
+    "IDXX",  # IDEXX Laboratories
+    "ILMN",  # Illumina
+    "INTC",  # Intel
+    "ISRG",  # Intuitive Surgical
+    "JD",    # JD.com
+    "JNJ",   # Johnson & Johnson
+    "JPM",   # JPMorgan Chase
+    "KLAC",  # KLA Corporation
+    "LMT",   # Lockheed Martin
+    "LRCX",  # Lam Research
+    "LULU",  # Lululemon Athletica
+    "LYFT",  # Lyft
+    "MA",    # Mastercard
+    "MCHP",  # Microchip Technology
+    "MDLZ",  # Mondelez International
+    "META",  # Meta Platforms (formerly Facebook)
+    "MELI",  # MercadoLibre
+    "MMM",   # 3M
+    "MNST",  # Monster Beverage
+    "MRK",   # Merck
+    "MRNA",  # Moderna
+    "MRVL",  # Marvell Technology
+    "MSFT",  # Microsoft
+    "MU",    # Micron Technology
+    "NFLX",  # Netflix
+    "NIO",   # NIO Inc.
+    "NKE",   # Nike
+    "NOW",   # ServiceNow
+    "NVDA",  # NVIDIA
+    "NXPI",  # NXP Semiconductors
+    "OKTA",  # Okta
+    "ORCL",  # Oracle
+    "PANW",  # Palo Alto Networks
+    "PEP",   # PepsiCo
+    "PFE",   # Pfizer
+    "PG",    # Procter & Gamble
+    "PLUG",  # Plug Power
+    "PYPL",  # PayPal
+    "QCOM",  # Qualcomm
+    "REGN",  # Regeneron Pharmaceuticals
+    "RIVN",  # Rivian
+    "ROST",  # Ross Stores
+    "SBUX",  # Starbucks
+    "SEDG",  # SolarEdge Technologies
+    "SHOP",  # Shopify
+    "SNPS",  # Synopsys
+    "SPLK",  # Splunk
+    "SPOT",  # Spotify
+    "SQ",    # Square
+    "SWKS",  # Skyworks Solutions
+    "TEAM",  # Atlassian
+    "TMO",   # Thermo Fisher Scientific
+    "TMUS",  # T-Mobile
+    "TSLA",  # Tesla
+    "TTD",   # The Trade Desk
+    "TXN",   # Texas Instruments
+    "UBER",  # Uber
+    "UNH",   # UnitedHealth
+    "V",     # Visa
+    "VEEV",  # Veeva Systems
+    "VRTX",  # Vertex Pharmaceuticals
+    "VZ",    # Verizon
+    "WBA",   # Walgreens Boots Alliance
+    "WDC",   # Western Digital
+    "WMT",   # Walmart
+    "XEL",   # Xcel Energy
+    "XPEV",  # XPeng
+    "ZBH",   # Zimmer Biomet
+    "ZBRA",  # Zebra Technologies
+    "ZM",    # Zoom Video Communications
+    "ZS",    # Zscaler
+]
+
 # Nasdaq 100 constituents at 2019/01
 NAS_100_TICKER = [
     "AMGN",
