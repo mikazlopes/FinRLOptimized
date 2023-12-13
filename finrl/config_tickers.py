@@ -170,7 +170,6 @@ DRL_ALGO_TICKERS = [
     "BIIB",  # Biogen
     "BLK",   # BlackRock
     "BLNK",  # Blink Charging
-    "BRKB",  # Berkshire Hathaway
     "BKNG",  # Booking Holdings
     "CAT",   # Caterpillar
     "CDNS",  # Cadence Design Systems
@@ -179,7 +178,6 @@ DRL_ALGO_TICKERS = [
     "CI",    # Cigna
     "CMCSA", # Comcast
     "CME",   # CME Group
-    "COUP",  # Coupa Software
     "COST",  # Costco Wholesale
     "CSCO",  # Cisco Systems
     "CRM",   # Salesforce
@@ -197,10 +195,10 @@ DRL_ALGO_TICKERS = [
     "EPAM",  # EPAM Systems
     "EQIX",  # Equinix
     "ETSY",  # Etsy
-    "FISV",  # Fiserv
     "FTNT",  # Fortinet
     "GILD",  # Gilead Sciences
     "GOOGL", # Alphabet
+    "GS", # Goldman Sachs
     "HD",    # Home Depot
     "HON",   # Honeywell
     "IBM",   # IBM
