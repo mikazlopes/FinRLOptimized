@@ -70,9 +70,8 @@ class DRLAgent:
     def get_model(
         self,
         model_name,
+        model_kwargs,
         policy="MlpPolicy",
-        policy_kwargs=None,
-        model_kwargs=None,
         verbose=1,
         seed=None,
         tensorboard_log=None,
@@ -80,8 +79,8 @@ class DRLAgent:
         if model_name not in MODELS:
             raise NotImplementedError("NotImplementedError")
 
-        if model_kwargs is None:
-            model_kwargs = MODEL_KWARGS[model_name]
+        # if model_kwargs is None:
+        #     model_kwargs = model_kwargs
 
         if "action_noise" in model_kwargs:
             n_actions = self.env.action_space.shape[-1]
@@ -92,9 +91,7 @@ class DRLAgent:
         return MODELS[model_name](
             policy=policy,
             env=self.env,
-            tensorboard_log=tensorboard_log,
             verbose=verbose,
-            policy_kwargs=policy_kwargs,
             seed=seed,
             **model_kwargs,
         )
