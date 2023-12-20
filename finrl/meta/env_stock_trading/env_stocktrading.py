@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from typing import List
-
+import optuna
 import gymnasium as gym
 import matplotlib
 import matplotlib.pyplot as plt
@@ -24,6 +24,7 @@ class StockTradingEnv(gym.Env):
     def __init__(
         self,
         df: pd.DataFrame,
+        optuna_trial,
         stock_dim: int,
         hmax: int,
         initial_amount: int,
@@ -47,6 +48,7 @@ class StockTradingEnv(gym.Env):
     ):
         self.day = day
         self.df = df
+        self.optuna_trial = optuna_trial
         self.stock_dim = stock_dim
         self.hmax = hmax
         self.num_stock_shares = num_stock_shares
@@ -220,7 +222,7 @@ class StockTradingEnv(gym.Env):
     def step(self, actions):
         self.terminal = self.day >= len(self.df.index.unique()) - 1
         if self.terminal:
-            # print(f"Episode: {self.episode}")
+            #print(f"Episode: {self.episode}")
             if self.make_plots:
                 self._make_plot()
             end_total_asset = self.state[0] + sum(
@@ -263,6 +265,19 @@ class StockTradingEnv(gym.Env):
                     print(f"Sharpe: {sharpe:0.3f}")
                 print("=================================")
 
+                # Report the intermediate value to Optuna
+                if self.optuna_trial is not None:
+                    self.optuna_trial.report(tot_reward, self.episode)
+
+                    # Handle pruning based on the intermediate value
+                    if self.optuna_trial.should_prune():
+                        raise optuna.exceptions.TrialPruned()
+                    
+                # Save tot_reward to a CSV file
+                tot_reward_df = pd.DataFrame([{'tot_reward': tot_reward}])
+                tot_reward_df.to_csv(f'tot_reward_{self.optuna_trial.number}.csv', index=False)
+                
+
             if (self.model_name != "") and (self.mode != ""):
                 df_actions = self.save_action_memory()
                 df_actions.to_csv(
@@ -291,11 +306,11 @@ class StockTradingEnv(gym.Env):
                 plt.close()
 
             # Add outputs to logger interface
-            # logger.record("environment/portfolio_value", end_total_asset)
-            # logger.record("environment/total_reward", tot_reward)
-            # logger.record("environment/total_reward_pct", (tot_reward / (end_total_asset - tot_reward)) * 100)
-            # logger.record("environment/total_cost", self.cost)
-            # logger.record("environment/total_trades", self.trades)
+            #logger.record("environment/portfolio_value", end_total_asset)
+            #logger.record("environment/total_reward", tot_reward)
+            #logger.record("environment/total_reward_pct", (tot_reward / (end_total_asset - tot_reward)) * 100)
+            #logger.record("environment/total_cost", self.cost)
+            #logger.record("environment/total_trades", self.trades)
 
             return self.state, self.reward, self.terminal, False, {}
 
@@ -311,21 +326,21 @@ class StockTradingEnv(gym.Env):
                 np.array(self.state[1 : (self.stock_dim + 1)])
                 * np.array(self.state[(self.stock_dim + 1) : (self.stock_dim * 2 + 1)])
             )
-            # print("begin_total_asset:{}".format(begin_total_asset))
+            #print("begin_total_asset:{}".format(begin_total_asset))
 
             argsort_actions = np.argsort(actions)
             sell_index = argsort_actions[: np.where(actions < 0)[0].shape[0]]
             buy_index = argsort_actions[::-1][: np.where(actions > 0)[0].shape[0]]
 
             for index in sell_index:
-                # print(f"Num shares before: {self.state[index+self.stock_dim+1]}")
-                # print(f'take sell action before : {actions[index]}')
+                #print(f"Num shares before: {self.state[index+self.stock_dim+1]}")
+                #print(f'take sell action before : {actions[index]}')
                 actions[index] = self._sell_stock(index, actions[index]) * (-1)
-                # print(f'take sell action after : {actions[index]}')
-                # print(f"Num shares after: {self.state[index+self.stock_dim+1]}")
+                #print(f'take sell action after : {actions[index]}')
+                #print(f"Num shares after: {self.state[index+self.stock_dim+1]}")
 
             for index in buy_index:
-                # print('take buy action: {}'.format(actions[index]))
+                #print('take buy action: {}'.format(actions[index]))
                 actions[index] = self._buy_stock(index, actions[index])
 
             self.actions_memory.append(actions)
