@@ -267,7 +267,7 @@ class StockTradingEnv(gym.Env):
 
                 # Report the intermediate value to Optuna
                 if self.optuna_trial is not None:
-                    self.optuna_trial.report(tot_reward, self.episode)
+                    self.optuna_trial.report(sharpe, self.episode)
 
                     # Handle pruning based on the intermediate value
                     if self.optuna_trial.should_prune():
