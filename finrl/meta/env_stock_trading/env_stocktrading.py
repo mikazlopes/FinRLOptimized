@@ -76,6 +76,7 @@ class StockTradingEnv(gym.Env):
         self.iteration = iteration
         # initalize state
         self.state = self._initiate_state()
+        self.total_steps = 0  # Initialize the total steps counter
 
         # initialize reward
         self.reward = 0
@@ -221,6 +222,7 @@ class StockTradingEnv(gym.Env):
 
     def step(self, actions):
         self.terminal = self.day >= len(self.df.index.unique()) - 1
+        self.total_steps += 1
         if self.terminal:
             #print(f"Episode: {self.episode}")
             if self.make_plots:
@@ -267,7 +269,7 @@ class StockTradingEnv(gym.Env):
 
                 # Report the intermediate value to Optuna
                 if self.optuna_trial is not None:
-                    self.optuna_trial.report(sharpe, self.episode)
+                    self.optuna_trial.report(sharpe, self.total_steps)
 
                     # Handle pruning based on the intermediate value
                     if self.optuna_trial.should_prune():
