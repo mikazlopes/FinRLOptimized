@@ -276,8 +276,8 @@ class StockTradingEnv(gym.Env):
                         raise optuna.exceptions.TrialPruned()
                     
                 # Save tot_reward to a CSV file
-                tot_reward_df = pd.DataFrame([{'tot_reward': tot_reward}])
-                tot_reward_df.to_csv(f'tot_reward_{self.optuna_trial.number}.csv', index=False)
+                sharpe_df = pd.DataFrame([{'Sharpe': sharpe}])
+                sharpe_df.to_csv(f'./interm_results/sharpe_{self.optuna_trial.number}.csv', index=False)
                 
 
             if (self.model_name != "") and (self.mode != ""):
